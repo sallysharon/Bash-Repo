@@ -1,8 +1,50 @@
-variables:
-  S3_BUCKET_NAME: eks-dtap-shared
+# see https://docs.gitlab.com/ce/ci/yaml/README.html for all available options
+
+# you can delete this line if you're not using Docker
+image: 
+
+stages:
+  - build
+  - test
+  - deploy
+  
+before_script:
+  - echo "Downloading packages"
+  - sudo apt install nodejs
+  - node –version
+  - npm install
+  - gem install
+  - bundle install
+  - echo "completed installing dependencies"
+
+
+
+build:
+  stage: build
+  script:
+    - npm run dist
+    - npm test	
+    - npm run docs	
+
+test:
+  stage: test
+  script:
+    - echo "Do a test here"
+    - echo "For example run a test suite"
+
+
 
 deploy:
-  environment: production
-  image: cellulantops/cicdtools:awsconsulskaffoldocker
+  stage: deploy
   script:
-    - aws s3 cp --region=eu-west-1 cicd-test.sh s3://eks-dtap-shared/cicdscripts/
+    - aws s3 cp --region=eu-west-1 cicd-bootstrap.sh s3://$S3_BUCKET_NAME/cicdscripts/
+    - aws s3api put-object-acl --bucket eks-dtap-shared --key cicdscripts/cicd-bootstrap.sh --acl public-read 1> /dev/null 2>&1
+  rules:
+    if: $CI_COMMIT_BRANCH == "master"
+    changes:
+      - cicd-bootstrap.sh
+    when: manual
+    
+  tags:
+    - job-pipeline
+    
