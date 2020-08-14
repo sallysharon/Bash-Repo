@@ -20,8 +20,8 @@ build:
   stage: build
   script:
     - npm run dist
-    - npm test	
-    - npm run docs	
+    - npm test
+    - npm run docs
 
 test:
   stage: test
